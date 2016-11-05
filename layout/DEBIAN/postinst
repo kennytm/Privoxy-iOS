@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# File        :  postinstall
+#
+# Purpose     :  execute all tasks necessary following installation of
+#                Privoxy's files
+#
+# Copyright   :  Written by and Copyright (C) 2001-2013 the
+#                Privoxy team. http://www.privoxy.org/
+#
+#                This program is free software; you can redistribute it
+#                and/or modify it under the terms of the GNU General
+#                Public License as published by the Free Software
+#                Foundation; either version 2 of the License, or (at
+#                your option) any later version.
+#
+#                This program is distributed in the hope that it will
+#                be useful, but WITHOUT ANY WARRANTY; without even the
+#                implied warranty of MERCHANTABILITY or FITNESS FOR A
+#                PARTICULAR PURPOSE.  See the GNU General Public
+#                License for more details.
+#
+#                The GNU General Public License should be included with
+#                this file.  If not, you can view it at
+#                http://www.gnu.org/copyleft/gpl.html
+#                or write to the Free Software Foundation, Inc.,
+#                51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+#                USA
+#
+# Modification : If you modify this file please consider whether your
+#                changes ought to be passed back to the iOSPackageBuilder
+#                module.
+#
+
+#  This postinstall script:
+#
+#  1. Creates the logfile if not found and sets its ownership and persmissions
+#  2. Starts Privoxy
+
+# preinstall created this file; continue to append to it in this script
+logfile='/var/privoxy_installation.log'
+
+# 1. Create Privoxy's logfile if not found and set its ownership and persmissions
+#
+if [ ! -d /var/log/privoxy ]; then
+	echo 'Creating Privoxy logfile directory' >> ${logfile}
+	/bin/mkdir -m 0755 /var/log/privoxy >> ${logfile} 2>&1
+fi
+echo 'Creating Privoxy logfile and setting owner and permissions' >> ${logfile}
+/bin/touch /var/log/privoxy/logfile.log >> ${logfile} 2>&1
+/bin/chown mobile:mobile /var/log/privoxy/logfile.log >> ${logfile} 2>&1
+/bin/chmod 0644 /var/log/privoxy/logfile.log >> ${logfile} 2>&1
+
+/bin/chown -R mobile:mobile /etc/privoxy/
+
+# 2. Start Privoxy
+#
+echo 'Start Privoxy via the LaunchDaemon' >> ${logfile}
+/bin/launchctl load /Library/LaunchDaemons/org.ijbswa.privoxy.plist >> ${logfile} 2>&1
+
+exit 0

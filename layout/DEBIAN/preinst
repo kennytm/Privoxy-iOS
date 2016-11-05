@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# File        :  preinstall
+#
+# Purpose     :  execute all tasks necessary prior to installation of
+#                Privoxy's files
+#
+# Copyright   :  Written by and Copyright (C) 2001-2013 the
+#                Privoxy team. http://www.privoxy.org/
+#
+#                This program is free software; you can redistribute it
+#                and/or modify it under the terms of the GNU General
+#                Public License as published by the Free Software
+#                Foundation; either version 2 of the License, or (at
+#                your option) any later version.
+#
+#                This program is distributed in the hope that it will
+#                be useful, but WITHOUT ANY WARRANTY; without even the
+#                implied warranty of MERCHANTABILITY or FITNESS FOR A
+#                PARTICULAR PURPOSE.  See the GNU General Public
+#                License for more details.
+#
+#                The GNU General Public License should be included with
+#                this file.  If not, you can view it at
+#                http://www.gnu.org/copyleft/gpl.html
+#                or write to the Free Software Foundation, Inc.,
+#                51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+#                USA
+#
+# Modification : If you modify this file please consider whether your
+#                changes ought to be passed back to the iOSPackageBuilder
+#                module.
+#
+
+#  This preinstall script:
+#  1. Shuts down Privoxy if it's running
+#  2. Backs up any existing log & configuration files
+
+# create installation log file
+logfile='/var/privoxy_installation.log'
+echo 'Privoxy installation on' `/bin/date` > ${logfile}
+
+# 1. Stop the Privoxy service if it's running
+#
+echo 'Stopping Privoxy via LaunchDaemon.' >> ${logfile}
+/bin/launchctl unload /Library/LaunchDaemons/org.ijbswa.privoxy.plist >> ${logfile} 2>&1
+
+# 2. Back up any existing log & configuration files
+#
+if [ -f /var/log/privoxy/logfile.log ]; then
+	echo 'Backing up existing logfile' >> ${logfile}
+	/bin/cp /var/log/privoxy/logfile.log /var/log/privoxy/logfile.old >> ${logfile} 2>&1
+	/bin/chown mobile:mobile /var/log/privoxy/logfile.old >> ${logfile} 2>&1
+fi
+if [ -d /etc/privoxy ]; then
+	for i in config match-all.action trust user.action user.filter; do
+		echo 'Backing up existing config file:' ${i} >> ${logfile}
+		if [ -f /etc/privoxy/$i ]; then
+			/bin/cp /etc/privoxy/$i /etc/privoxy/$i.old >> ${logfile} 2>&1
+			/bin/chown mobile:mobile /etc/privoxy/$i.old >> ${logfile} 2>&1
+		fi
+	done
+	echo 'Backing up existing config templates' >> ${logfile}
+	/bin/cp -R /etc/privoxy/templates /etc/privoxy/templates.old >> ${logfile} 2>&1
+	/bin/chown -R mobile:mobile /etc/privoxy/templates.old >> ${logfile} 2>&1
+fi
+
+exit 0

@@ -1,0 +1,54 @@
+#define VERSION_MAJOR 3
+#define VERSION_MINOR 0
+#define VERSION_POINT 26
+
+#define X_STRINGIFY_2(S) #S
+#define X_STRINGIFY_1(S) X_STRINGIFY_2(S)
+#define VERSION X_STRINGIFY_1(VERSION_MAJOR.VERSION_MINOR.VERSION_POINT)
+
+#define CODE_STATUS "stable"
+
+#undef FEATURE_DYNAMIC_PCRE
+#define STATIC_PCRS 1
+#undef FEATURE_ACL
+#define FEATURE_ACCEPT_FILTER 1
+#undef FEATURE_CGI_EDIT_ACTIONS
+#define FEATURE_FAST_REDIRECTS 1
+#define FEATURE_FORCE_LOAD 1
+#define FEATURE_IMAGE_BLOCKING 1
+#define FEATURE_IMAGE_DETECT_MSIE 1
+#undef FEATURE_NO_GIFS
+#undef FEATURE_GRACEFUL_TERMINATION
+#undef FEATURE_EXTENDED_HOST_PATTERNS
+#define FEATURE_EXTERNAL_FILTERS 1
+#define FEATURE_CONNECTION_KEEP_ALIVE 1
+#define FEATURE_CONNECTION_SHARING 1
+#define FEATURE_PTHREAD 1
+#define FEATURE_STATISTICS 1
+#define FEATURE_STRPTIME_SANITY_CHECKS 1
+#define FEATURE_TOGGLE 1
+#define FEATURE_TRUST 1
+#define FEATURE_CLIENT_TAGS 1
+
+#define HAVE_GMTIME_R 1
+#define HAVE_LOCALTIME_R 1
+#define HAVE_SNPRINTF 1
+#define HAVE_STRLCPY 1
+#define HAVE_STRLCAT 1
+#define HAVE_MEMMOVE 1
+#define HAVE_RANDOM 1
+#define HAVE_TIMEGM 1
+#define HAVE_ACCESS 1
+#define HAVE_UNISTD_H 1
+#define HAVE_POLL 1
+#define HAVE_SHUTDOWN 1
+#define HAVE_STRERROR 1
+#define HAVE_BCOPY 1
+
+#define unix 1
+// #define _PCREPOSIX_H 1
+
+#define regcomp pcreposix_regcomp
+#define regexec pcreposix_regexec
+#define regerror pcreposix_regerror
+#define regfree pcreposix_regfree
