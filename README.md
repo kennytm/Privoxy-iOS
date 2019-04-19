@@ -1,13 +1,13 @@
 Privoxy for Jailbroken iOS
 ==========================
 
-This project ports [Privoxy 3.0.26](http://www.privoxy.org/) to iOS as a Cydia package (*.deb).
+This project ports [Privoxy 3.0.28](http://www.privoxy.org/) to iOS as a Cydia package (*.deb).
 
 Usage
 -----
 
 1. Requirement: iOS 7+, [jailbroken](https://canijailbreak.com/).
-2. Install `org.ijbswa.privoxy_3.0.26_iphoneos-arm.deb`.
+2. Install `org.ijbswa.privoxy_3.0.28_iphoneos-arm.deb`.
 3. Enable the HTTP proxy
     * Go to Settings → Wi-Fi → (your network)
     * Click "Manual" under "HTTP Proxy"

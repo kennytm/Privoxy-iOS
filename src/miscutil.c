@@ -1,4 +1,3 @@
-const char miscutil_rcs[] = "$Id: miscutil.c,v 1.82 2016/07/23 23:05:15 ler762 Exp $";
 /*********************************************************************
  *
  * File        :  $Source: /cvsroot/ijbswa/current/miscutil.c,v $
@@ -8,7 +7,7 @@ const char miscutil_rcs[] = "$Id: miscutil.c,v 1.82 2016/07/23 23:05:15 ler762 E
  *                to deserve their own file but don't really fit in
  *                any other file.
  *
- * Copyright   :  Written by and Copyright (C) 2001-2016 the
+ * Copyright   :  Written by and Copyright (C) 2001-2018 the
  *                Privoxy team. http://www.privoxy.org/
  *
  *                Based on the Internet Junkbuster originally written
@@ -63,30 +62,33 @@ const char miscutil_rcs[] = "$Id: miscutil.c,v 1.82 2016/07/23 23:05:15 ler762 E
 #include "project.h"
 #include "miscutil.h"
 #include "errlog.h"
-#include "jcc.h"
-
-const char miscutil_h_rcs[] = MISCUTIL_H_VERSION;
 
 /*********************************************************************
  *
  * Function    :  zalloc
  *
- * Description :  Malloc some memory and set it to '\0'.
+ * Description :  Returns allocated memory that is initialized
+ *                with zeros.
  *
  * Parameters  :
  *          1  :  size = Size of memory chunk to return.
  *
- * Returns     :  Pointer to newly malloc'd memory chunk.
+ * Returns     :  Pointer to newly alloc'd memory chunk.
  *
  *********************************************************************/
 void *zalloc(size_t size)
 {
    void * ret;
 
+#ifdef HAVE_CALLOC
+   ret = calloc(1, size);
+#else
+#warning calloc appears to be unavailable. Your platform will become unsupported in the future
    if ((ret = (void *)malloc(size)) != NULL)
    {
       memset(ret, 0, size);
    }
+#endif
 
    return(ret);
 
@@ -212,26 +214,22 @@ void *malloc_or_die(size_t buffer_size)
  *
  * Function    :  write_pid_file
  *
- * Description :  Writes a pid file with the pid of the main process
+ * Description :  Writes a pid file with the pid of the main process.
+ *                Exits if the file can't be opened
  *
- * Parameters  :  None
+ * Parameters  :
+ *          1  :  pidfile = Path of the pidfile that gets created.
  *
  * Returns     :  N/A
  *
  *********************************************************************/
-void write_pid_file(void)
+void write_pid_file(const char *pidfile)
 {
    FILE   *fp;
 
-   /*
-    * If no --pidfile option was given,
-    * we can live without one.
-    */
-   if (pidfile == NULL) return;
-
    if ((fp = fopen(pidfile, "w")) == NULL)
    {
-      log_error(LOG_LEVEL_INFO, "can't open pidfile '%s': %E", pidfile);
+      log_error(LOG_LEVEL_FATAL, "can't open pidfile '%s': %E", pidfile);
    }
    else
    {
@@ -642,42 +640,6 @@ char *bindup(const char *string, size_t len)
  *********************************************************************/
 char * make_path(const char * dir, const char * file)
 {
-#ifdef AMIGA
-   char path[512];
-
-   if (dir)
-   {
-      if (dir[0] == '.')
-      {
-         if (dir[1] == '/')
-         {
-            strncpy(path,dir+2,512);
-         }
-         else
-         {
-            strncpy(path,dir+1,512);
-         }
-      }
-      else
-      {
-         strncpy(path,dir,512);
-      }
-      path[511]=0;
-   }
-   else
-   {
-      path[0]=0;
-   }
-   if (AddPart(path,file,512))
-   {
-      return strdup(path);
-   }
-   else
-   {
-      return NULL;
-   }
-#else /* ndef AMIGA */
-
    if ((file == NULL) || (*file == '\0'))
    {
       return NULL; /* Error */
@@ -735,7 +697,6 @@ char * make_path(const char * dir, const char * file)
 
       return path;
    }
-#endif /* ndef AMIGA */
 }
 
 
@@ -765,7 +726,9 @@ long int pick_from_range(long int range)
 
    if (range <= 0) return 0;
 
-#ifdef HAVE_RANDOM
+#ifdef HAVE_ARC4RANDOM
+   number = arc4random() % range + 1;
+#elif defined(HAVE_RANDOM)
    number = random() % range + 1;
 #elif defined(MUTEX_LOCKS_AVAILABLE)
    privoxy_mutex_lock(&rand_mutex);
@@ -789,7 +752,7 @@ long int pick_from_range(long int range)
       "might cause crashes, predictable results or even combine these fine options.");
    number = rand() % (long int)(range + 1);
 
-#endif /* (def HAVE_RANDOM) */
+#endif /* (def HAVE_ARC4RANDOM) */
 
    return number;
 }
@@ -850,6 +813,45 @@ size_t privoxy_strlcat(char *destination, const char *source, const size_t size)
    return old_length + strlcpy(destination + old_length, source, size - old_length);
 }
 #endif /* ndef HAVE_STRLCAT */
+
+
+/*********************************************************************
+ *
+ * Function    :  privoxy_millisleep
+ *
+ * Description :  Sleep a number of milliseconds
+ *
+ * Parameters  :
+ *          1  :  delay: Number of milliseconds to sleep
+ *
+ * Returns     :  -1 on error, 0 otherwise
+ *
+ *********************************************************************/
+int privoxy_millisleep(unsigned milliseconds)
+{
+#ifdef HAVE_NANOSLEEP
+   struct timespec rqtp = {0};
+   struct timespec rmtp = {0};
+
+   rqtp.tv_sec = milliseconds / 1000;
+   rqtp.tv_nsec = (milliseconds % 1000) * 1000 * 1000;
+
+   return nanosleep(&rqtp, &rmtp);
+#elif defined (_WIN32)
+   Sleep(milliseconds);
+
+   return 0;
+#elif defined(__OS2__)
+   DosSleep(milliseconds * 10);
+
+   return 0;
+#else
+#warning Missing privoxy_milisleep() implementation. delay-response{} will not work.
+
+   return -1;
+#endif /* def HAVE_NANOSLEEP */
+
+}
 
 
 #if !defined(HAVE_TIMEGM) && defined(HAVE_TZSET) && defined(HAVE_PUTENV)
