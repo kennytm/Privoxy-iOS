@@ -1,7 +1,7 @@
 _THEOS_PLATFORM_DPKG_DEB = /usr/local/opt/dpkg/libexec/bin/dpkg-deb
 # ^ see https://github.com/theos/theos/issues/188
 
-TARGET := iphone:10.1:7.0
+TARGET := iphone:12.2:7.0
 
 THEOS_DEVICE_IP ?= 127.0.0.1
 ifeq ($(THEOS_DEVICE_IP), 127.0.0.1)
@@ -15,6 +15,10 @@ privoxy_CFLAGS = -I. -Isrc -Isrc/pcre -Wno-builtin-memcpy-chk-size -Wno-format -
 privoxy_FILES = $(wildcard src/[a-v]*.c) src/pcre/pcre.c src/pcre/pcreposix.c src/pcre/study.c
 
 include $(THEOS_MAKE_PATH)/tool.mk
+
+before-privoxy-all::
+	clang -Isrc -o dftables src/pcre/dftables.c
+	./dftables > chartables.c
 
 before-privoxy-stage::
 	mkdir -p $(THEOS_STAGING_DIR)/etc/privoxy

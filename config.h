@@ -1,6 +1,6 @@
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 0
-#define VERSION_POINT 26
+#define VERSION_POINT 28
 
 #define X_STRINGIFY_2(S) #S
 #define X_STRINGIFY_1(S) X_STRINGIFY_2(S)
@@ -44,6 +44,8 @@
 #define HAVE_SHUTDOWN 1
 #define HAVE_STRERROR 1
 #define HAVE_BCOPY 1
+#define HAVE_CALLOC 1
+#define HAVE_NANOSLEEP 1
 
 #define unix 1
 // #define _PCREPOSIX_H 1
@@ -52,3 +54,4 @@
 #define regexec pcreposix_regexec
 #define regerror pcreposix_regerror
 #define regfree pcreposix_regfree
+#define regex_t pcreposix_regex_t
